@@ -5,20 +5,25 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/justinorringer/pal-pad-go/endpoints"
+	"github.com/justinorringer/pal-pad-go/sockets"
 )
 
 func main() {
+	hub := sockets.NewHub()
+	go hub.Run()
+
+	ws := func(w http.ResponseWriter, r *http.Request) {
+		sockets.ServeWs(hub, w, r)
+	}
+
 	r := chi.NewRouter()
 	sub := chi.NewRouter()
 
 	r.Mount("/api/v1", sub)
 	r.Get("/", endpoints.Lubdub)
+	r.Get("/ws", ws)
 
-	// GET /api/v1/pads/{pad_id} // get the canvas
-	// POST /api/v1/user/ // json or something for the data, return user id for frontend
-	// POST /api/v1/pads/{pad_id}/ // and maybe pass the user here too so we know who made the change
-
-	sub.Post("/pads", endpoints.Lubdub)
+	sub.Post("/user", endpoints.Lubdub) // create a new user, return the user id
 
 	srv := http.Server{
 		Addr:    ":8000",
