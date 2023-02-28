@@ -4,13 +4,19 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/justinorringer/pal-pad-go/db"
 	"github.com/justinorringer/pal-pad-go/endpoints"
 	"github.com/justinorringer/pal-pad-go/sockets"
 )
 
 func main() {
+	rc, err := db.NewRedisClient()
+	if err != nil { // if the database connection fails, panic
+		panic(err)
+	}
+
 	hub := sockets.NewHub()
-	go hub.Run()
+	go hub.Run(*rc) // hub handles all websocket connections
 
 	ws := func(w http.ResponseWriter, r *http.Request) {
 		sockets.ServeWs(hub, w, r)

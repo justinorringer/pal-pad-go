@@ -3,11 +3,11 @@
 package sockets
 
 import (
-	"bytes"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -38,19 +38,15 @@ var upgrader = websocket.Upgrader{
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	hub *Hub
-
 	// The websocket connection.
 	conn *websocket.Conn
-
 	// Buffered channel of outbound messages.
 	send chan []byte
+	// Sketch ID the client is connected to
+	sketchID uuid.UUID
 }
 
 // readPump pumps messages from the websocket connection to the hub.
-//
-// The application runs readPump in a per-connection goroutine. The application
-// ensures that there is at most one reader on a connection by executing all
-// reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -67,7 +63,8 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+
+		// broadcast the message to the other clients
 		c.hub.broadcast <- message
 	}
 }
@@ -87,24 +84,7 @@ func (c *Client) writePump() {
 		select {
 		case message, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if !ok {
-				// The hub closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			if !ok {Save
 
 			if err := w.Close(); err != nil {
 				return

@@ -2,20 +2,20 @@
 
 package sockets
 
+import (
+	"github.com/justinorringer/pal-pad-go/db"
+)
+
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
-	// Registered clients.
-	clients map[*Client]bool
+	clients map[*Client]bool // Registered clients.
 
-	// Inbound messages from the clients.
-	broadcast chan []byte
+	broadcast chan []byte // Inbound messages from the clients.
 
-	// Register requests from the clients.
-	register chan *Client
+	register chan *Client // Register requests from the clients.
 
-	// Unregister requests from clients.
-	unregister chan *Client
+	unregister chan *Client // Unregister requests from clients.
 }
 
 func NewHub() *Hub {
@@ -27,7 +27,7 @@ func NewHub() *Hub {
 	}
 }
 
-func (h *Hub) Run() {
+func (h *Hub) Run(rc *db.RedisClient) {
 	for {
 		select {
 		case client := <-h.register:
@@ -38,7 +38,14 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			// process the line and store it in the database
+			err = ProcessMessage(rc)
+
 			for client := range h.clients {
+				// if the message is for a specific sketch, only send it to clients with sketchID
+				// if client.sketchID != uuid.Nil && client.sketchID != message.sketchID {
+				// 	continue
+				// }
 				select {
 				case client.send <- message:
 				default:
