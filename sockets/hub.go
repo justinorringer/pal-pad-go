@@ -39,7 +39,15 @@ func (h *Hub) Run(rc *db.RedisClient) {
 			}
 		case message := <-h.broadcast:
 			// process the line and store it in the database
-			err = ProcessMessage(rc)
+			eventType, err := processMessage(rc, h, message)
+
+			if err != nil {
+				continue
+			}
+
+			if eventType == sync { // don't send to all clients
+				continue
+			}
 
 			for client := range h.clients {
 				// if the message is for a specific sketch, only send it to clients with sketchID

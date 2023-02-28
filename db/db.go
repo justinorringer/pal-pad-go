@@ -58,6 +58,20 @@ func updateSketch(rc *RedisClient, sketchTable SketchTable) (err error) {
 	return
 }
 
+func getLine(line string) (l models.Line, err error) {
+	// unmarshal the line into a Line struct
+	l = models.Line{}
+	err = json.Unmarshal([]byte(line), &l)
+
+	if err != nil {
+		// log error
+		log.Printf("Error unmarshalling line: %s", err)
+		return models.Line{}, err
+	}
+
+	return
+}
+
 func updateLine(rc *RedisClient, line models.Line) (err error) {
 	// marshal the line into a json string
 	json, err := json.Marshal(line)
@@ -81,10 +95,10 @@ func updateLine(rc *RedisClient, line models.Line) (err error) {
 }
 
 // Save the line to the database
-func ProcessMessage(rc *RedisClient, message []byte) (err error) {
+func ProcessDraw(rc *RedisClient, data []byte) (err error) {
 	// marshal the message into a Line struct
 	line := models.Line{}
-	err = json.Unmarshal(message, &line)
+	err = json.Unmarshal(data, &line)
 
 	if err != nil {
 		// log error
@@ -119,6 +133,111 @@ func ProcessMessage(rc *RedisClient, message []byte) (err error) {
 	if err != nil {
 		// log error
 		log.Printf("Error updating line: %s", err)
+		return
+	}
+
+	return
+}
+
+type SyncData struct {
+	SketchID uuid.UUID
+}
+
+func ProcessSync(rc *RedisClient, data []byte) (err error) {
+	syncData := SyncData{}
+	err = json.Unmarshal(data, &syncData)
+
+	if err != nil {
+		// log error
+		log.Printf("Error unmarshalling sync data: %s", err)
+		return
+	}
+
+	// get the sketch from the database
+	sketchTable, err := getSketch(rc, syncData.SketchID.String())
+
+	if err != nil {
+		// log error
+		log.Printf("Error finding matching sketch: %s", err)
+		return
+	}
+
+	sketch := models.Sketch{
+		ID:    sketchTable.ID,
+		Lines: []models.Line{},
+	}
+
+	// get the lines from the database
+	for _, lineID := range sketchTable.LineID {
+		line, err := rc.Get(lineID.String())
+
+		if err != nil {
+			// log error
+			log.Printf("Error finding matching line: %s", err)
+			continue
+		}
+
+		l, err := getLine(line)
+
+		if err != nil {
+			// log error
+			log.Printf("Error finding matching line: %s", err)
+			continue
+		}
+
+		sketch.Lines = append(sketch.Lines, l)
+
+	}
+
+	return err
+
+}
+
+type ClearData struct {
+	SketchID uuid.UUID
+}
+
+func ProcessClear(rc *RedisClient, data []byte) (err error) {
+	clearData := ClearData{}
+	err = json.Unmarshal(data, &clearData)
+
+	if err != nil {
+		// log error
+		log.Printf("Error unmarshalling clear data: %s", err)
+		return
+	}
+
+	// get the sketch from the database
+	sketchTable, err := getSketch(rc, clearData.SketchID.String())
+
+	if err != nil {
+		// log error
+		log.Printf("Error finding matching sketch: %s", err)
+		return
+	}
+
+	// delete the lines from the database
+	for _, lineID := range sketchTable.LineID {
+		err = rc.Del(lineID.String())
+
+		if err != nil {
+			// log error
+			log.Printf("Error deleting line: %s", err)
+			continue
+		}
+	}
+
+	sketchTable = SketchTable{
+		ID:     sketchTable.ID,
+		LineID: []uuid.UUID{},
+	}
+
+	// update sketch
+	err = updateSketch(rc, sketchTable)
+
+	if err != nil {
+		// log error
+		log.Printf("Error updating sketch: %s", err)
 		return
 	}
 
