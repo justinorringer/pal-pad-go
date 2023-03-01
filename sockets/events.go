@@ -16,8 +16,8 @@ const (
 )
 
 type Message struct {
-	Type eventType `json:"type"`
-	Data []byte    `json:"data"`
+	Type eventType              `json:"event"`
+	Data map[string]interface{} `json:"data"`
 }
 
 func processMessage(rc *db.RedisClient, h *Hub, message []byte) (t eventType, err error) {
@@ -27,6 +27,7 @@ func processMessage(rc *db.RedisClient, h *Hub, message []byte) (t eventType, er
 	if err != nil {
 		// log error
 		log.Printf("Error unmarshalling message: %s", err)
+		log.Printf("Message: %s", message)
 		return
 	}
 

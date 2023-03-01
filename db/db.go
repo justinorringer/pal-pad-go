@@ -95,10 +95,9 @@ func updateLine(rc *RedisClient, line models.Line) (err error) {
 }
 
 // Save the line to the database
-func ProcessDraw(rc *RedisClient, data []byte) (err error) {
+func ProcessDraw(rc *RedisClient, data map[string]interface{}) (err error) {
 	// marshal the message into a Line struct
 	line := models.Line{}
-	err = json.Unmarshal(data, &line)
 
 	if err != nil {
 		// log error
@@ -143,9 +142,8 @@ type SyncData struct {
 	SketchID uuid.UUID
 }
 
-func ProcessSync(rc *RedisClient, data []byte) (err error) {
+func ProcessSync(rc *RedisClient, data map[string]interface{}) (err error) {
 	syncData := SyncData{}
-	err = json.Unmarshal(data, &syncData)
 
 	if err != nil {
 		// log error
@@ -197,9 +195,8 @@ type ClearData struct {
 	SketchID uuid.UUID
 }
 
-func ProcessClear(rc *RedisClient, data []byte) (err error) {
+func ProcessClear(rc *RedisClient, data map[string]interface{}) (err error) {
 	clearData := ClearData{}
-	err = json.Unmarshal(data, &clearData)
 
 	if err != nil {
 		// log error
