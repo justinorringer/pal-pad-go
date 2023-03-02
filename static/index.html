@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<body>
+    <button id="clearButton">Clear</button>
+    <button id="drawButton">Draw Random Line</button>
+    <p id="lines"></p>
+</body>
+
+<script>
+    var socket = io("http://localhost:3000");
+
+    var clearButton = document.getElementById('clearButton');
+    var drawButton = document.getElementById('drawButton');
+    var lines = document.getElementById('lines');
+
+    clearButton.addEventListener('click', function () {
+        socket.emit('clear');
+    });
+
+    drawButton.addEventListener('click', function () {
+        let randomLine = {
+            x1: Math.random() * 100,
+            y1: Math.random() * 100,
+            x2: Math.random() * 100,
+            y2: Math.random() * 100,
+            color: 'red'
+        }
+        socket.emit('line', randomLine);
+    });
+
+    socket.on('sync', function (data) {
+        lines.innerHTML = JSON.stringify(data);
+    });
+</script>
+
+</html>
