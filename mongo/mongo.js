@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 
-var url = "mongodb://localhost:27017/";
+var url = "mongodb+srv://palpad:987Pal123Pad@palpad.dfyrb8d.mongodb.net/?retryWrites=true&w=majority";
 var db = "pal-pad";
 var sketches_collection = "sketches";
 var lines_collection = "lines";
