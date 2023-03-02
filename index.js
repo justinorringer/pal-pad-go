@@ -9,7 +9,7 @@ const io = new Server(server);
 // Using in memory storage for now
 let lines = [];
 
-app.get('/', (req, res) => {
+app.get('/test', (req, res) => {
     res.sendFile(__dirname + '/static/index.html');
 });
 
