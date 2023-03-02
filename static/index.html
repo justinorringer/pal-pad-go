@@ -12,27 +12,46 @@
 <script>
     var socket = io("http://localhost:3000");
 
+    var line_data = [];
+    var sketch_id = 0;
+
+    socket.emit('join', 1001)
+
+    // this event is used on clear and initial sync
+    socket.on('sketch', function (data) {
+        sketch_id = data.id;
+        line_data = data.lines;
+        lines.innerHTML = JSON.stringify(line_data);
+    });
+
     var clearButton = document.getElementById('clearButton');
     var drawButton = document.getElementById('drawButton');
     var lines = document.getElementById('lines');
 
     clearButton.addEventListener('click', function () {
-        socket.emit('clear');
+        socket.emit('clear', sketch_id);
     });
 
     drawButton.addEventListener('click', function () {
-        let randomLine = {
+        let randomLine = { points: [{
             x1: Math.random() * 100,
             y1: Math.random() * 100,
             x2: Math.random() * 100,
             y2: Math.random() * 100,
-            color: 'red'
-        }
-        socket.emit('line', randomLine);
+            color: {
+                r: Math.random() * 255,
+                g: Math.random() * 255,
+                b: Math.random() * 255,
+                a: Math.random()
+            }
+        }]};
+        socket.emit('line', sketch_id, randomLine);
     });
 
     socket.on('sync', function (data) {
-        lines.innerHTML = JSON.stringify(data);
+        console.log(data);
+        line_data.push(data);
+        lines.innerHTML = JSON.stringify(line_data);
     });
 </script>
 
