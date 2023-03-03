@@ -9,7 +9,11 @@ const __dirname = fileURLToPath(import.meta.url).replace('index.js', '');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    }
+});
 
 var client = new Client();
 
