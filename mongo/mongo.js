@@ -1,9 +1,13 @@
 import { MongoClient } from 'mongodb';
 
-var url = "mongodb+srv://palpad:987Pal123Pad@palpad.dfyrb8d.mongodb.net/?retryWrites=true&w=majority";
-var db = "pal-pad";
-var sketches_collection = "sketches";
-var lines_collection = "lines";
+const username = process.env.USERNAME;
+const password = process.env.PASSWORD;
+const url = `mongodb+srv://${username}:${password}@palpad.dfyrb8d.mongodb.net/?retryWrites=true&w=majority`;
+const db = "pal-pad";
+const sketches_collection = "sketches";
+const lines_collection = "lines";
+
+console.log(url);
 
 class Client {
     constructor() {
