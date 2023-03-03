@@ -7,7 +7,7 @@ const db = "pal-pad";
 const sketches_collection = "sketches";
 const lines_collection = "lines";
 
-console.log(url);
+console.log("MongoDB hosted at: " + url);
 
 class Client {
     constructor() {
@@ -22,6 +22,9 @@ class Client {
             this.db = this.client.db(db);
         } catch (err) {
             console.log(err.stack);
+
+            // if we can't connect to the database, we should exit
+            process.exit(1);
         }
     }
 
