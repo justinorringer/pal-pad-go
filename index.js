@@ -46,12 +46,12 @@ io.on('connection', (socket) => {
             + " from sketch: " + sketch_id)
         // add the line to the database
         client.NewLine(sketch_id, line);
-        io.emit('sync', line);
+        socket.broadcast.emit('sync', line);
     });
 
     socket.on('clear', (sketch_id) => {
         client.ClearLines(sketch_id);
-        io.emit('sketch', { "id": sketch_id, lines: []});
+        io.emit('clear');
     });
 });
 
