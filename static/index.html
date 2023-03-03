@@ -24,6 +24,11 @@
         lines.innerHTML = JSON.stringify(line_data);
     });
 
+    socket.on('clear', function() {
+        line_data = [];
+        lines.innerHTML = JSON.stringify(line_data);
+    })
+
     var clearButton = document.getElementById('clearButton');
     var drawButton = document.getElementById('drawButton');
     var lines = document.getElementById('lines');
@@ -45,6 +50,11 @@
                 a: Math.random()
             }
         }]};
+
+        // add the randomLine to the line_data array
+        line_data.push(randomLine);
+        lines.innerHTML = JSON.stringify(line_data);
+
         socket.emit('line', sketch_id, randomLine);
     });
 
