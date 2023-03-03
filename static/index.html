@@ -6,6 +6,9 @@
 <body>
     <button id="clearButton">Clear</button>
     <button id="drawButton">Draw Random Line</button>
+    <input type="text" id="meeting_id" value="meeting_id1" />
+
+    <br />
     <p id="lines"></p>
 </body>
 
@@ -13,9 +16,9 @@
     var socket = io();
 
     var line_data = [];
-    var sketch_id = 0;
+    var sketch_id_element = document.getElementById('meeting_id');
 
-    socket.emit('join', 1001)
+    socket.emit('join', sketch_id_element.value);
 
     // this event is used on clear and initial sync
     socket.on('sketch', function (data) {
@@ -34,7 +37,7 @@
     var lines = document.getElementById('lines');
 
     clearButton.addEventListener('click', function () {
-        socket.emit('clear', sketch_id);
+        socket.emit('clear', sketch_id_element.value);
     });
 
     drawButton.addEventListener('click', function () {
@@ -55,7 +58,7 @@
         line_data.push(randomLine);
         lines.innerHTML = JSON.stringify(line_data);
 
-        socket.emit('line', sketch_id, randomLine);
+        socket.emit('line', sketch_id_element.value, randomLine);
     });
 
     socket.on('sync', function (data) {
